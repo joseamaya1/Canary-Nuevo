@@ -7056,7 +7056,7 @@ bool Game::combatChangeHealth(std::shared_ptr<Creature> attacker, std::shared_pt
 
 				if (tmpPlayer == attackerPlayer && attackerPlayer != targetPlayer) {
 					ss.str({});
-					ss << "You heal " << target->getNameDescription() << " for " << damageString;
+					ss << "You heal " << target->getNameDescription() << " for +" << damageString;
 					message.type = MESSAGE_HEALED;
 					message.text = ss.str();
 				} else if (tmpPlayer == targetPlayer) {
@@ -7068,7 +7068,7 @@ bool Game::combatChangeHealth(std::shared_ptr<Creature> attacker, std::shared_pt
 					} else {
 						ss << "You were healed by " << attacker->getNameDescription();
 					}
-					ss << " for " << damageString;
+					ss << " for +" << damageString;
 					message.type = MESSAGE_HEALED;
 					message.text = ss.str();
 				} else {
@@ -7084,7 +7084,7 @@ bool Game::combatChangeHealth(std::shared_ptr<Creature> attacker, std::shared_pt
 								ss << target->getNameDescription();
 							}
 						}
-						ss << " for " << damageString;
+						ss << " for +" << damageString;
 						spectatorMessage = ss.str();
 					}
 					message.type = MESSAGE_HEALED_OTHERS;
@@ -7253,7 +7253,7 @@ bool Game::combatChangeHealth(std::shared_ptr<Creature> attacker, std::shared_pt
 
 				std::string spectatorMessage;
 
-				message.primary.value = manaDamage;
+				message.primary.value = manaDamage * -1;
 				message.primary.color = TEXTCOLOR_BLUE;
 
 				for (const auto &spectator : spectators) {
@@ -7385,6 +7385,8 @@ bool Game::combatChangeHealth(std::shared_ptr<Creature> attacker, std::shared_pt
 
 		addCreatureHealth(spectators.data(), target);
 
+		int realDamage1 = realDamage * -1;
+
 		sendDamageMessageAndEffects(
 			attacker,
 			target,
@@ -7394,7 +7396,7 @@ bool Game::combatChangeHealth(std::shared_ptr<Creature> attacker, std::shared_pt
 			targetPlayer,
 			message,
 			spectators.data(),
-			realDamage
+			realDamage1
 		);
 
 		if (attackerPlayer) {
@@ -7430,8 +7432,8 @@ void Game::sendDamageMessageAndEffects(
 	const Position &targetPos, std::shared_ptr<Player> attackerPlayer, std::shared_ptr<Player> targetPlayer,
 	TextMessage &message, const CreatureVector &spectators, int32_t realDamage
 ) {
-	message.primary.value = damage.primary.value;
-	message.secondary.value = damage.secondary.value;
+	message.primary.value = damage.primary.value * -1;
+	message.secondary.value = damage.secondary.value * -1;
 
 	sendEffects(target, damage, targetPos, message, spectators);
 
@@ -7702,12 +7704,12 @@ bool Game::combatChangeMana(std::shared_ptr<Creature> attacker, std::shared_ptr<
 		realManaChange = target->getMana() - realManaChange;
 
 		if (realManaChange > 0 && !target->isInGhostMode()) {
-			std::string damageString = fmt::format("{} mana", realManaChange);
+			std::string damageString = fmt::format("{} mana ", realManaChange);
 
 			std::string spectatorMessage;
 			if (!attacker) {
 				spectatorMessage += ucfirst(target->getNameDescription());
-				spectatorMessage += " was restored for " + damageString;
+				spectatorMessage += " was restored for +" + damageString;
 			} else {
 				spectatorMessage += ucfirst(attacker->getNameDescription());
 				spectatorMessage += " restored ";
@@ -7716,7 +7718,7 @@ bool Game::combatChangeMana(std::shared_ptr<Creature> attacker, std::shared_ptr<
 				} else {
 					spectatorMessage += target->getNameDescription();
 				}
-				spectatorMessage += " for " + damageString;
+				spectatorMessage += " for +" + damageString;
 			}
 
 			TextMessage message;
@@ -7732,15 +7734,15 @@ bool Game::combatChangeMana(std::shared_ptr<Creature> attacker, std::shared_ptr<
 
 				if (tmpPlayer == attackerPlayer && attackerPlayer != targetPlayer) {
 					message.type = MESSAGE_HEALED;
-					message.text = "You restored " + target->getNameDescription() + " for " + damageString;
+					message.text = "You restored " + target->getNameDescription() + " for +" + damageString;
 				} else if (tmpPlayer == targetPlayer) {
 					message.type = MESSAGE_HEALED;
 					if (!attacker) {
-						message.text = "You were restored for " + damageString;
+						message.text = "You were restored for +" + damageString;
 					} else if (targetPlayer == attackerPlayer) {
-						message.text = "You restore yourself for " + damageString;
+						message.text = "You restore yourself for +" + damageString;
 					} else {
-						message.text = "You were restored by " + attacker->getNameDescription() + " for " + damageString;
+						message.text = "You were restored by " + attacker->getNameDescription() + " for +" + damageString;
 					}
 				} else {
 					message.type = MESSAGE_HEALED_OTHERS;
@@ -7818,7 +7820,7 @@ bool Game::combatChangeMana(std::shared_ptr<Creature> attacker, std::shared_ptr<
 
 		TextMessage message;
 		message.position = targetPos;
-		message.primary.value = manaLoss;
+		message.primary.value = manaLoss * -1;
 		message.primary.color = TEXTCOLOR_BLUE;
 
 		for (const auto &spectator : Spectators().find<Player>(targetPos)) {
@@ -7829,12 +7831,12 @@ bool Game::combatChangeMana(std::shared_ptr<Creature> attacker, std::shared_ptr<
 
 			if (tmpPlayer == attackerPlayer && attackerPlayer != targetPlayer) {
 				ss.str({});
-				ss << ucfirst(target->getNameDescription()) << " loses " << damageString << " mana due to your attack.";
+				ss << ucfirst(target->getNameDescription()) << " loses -" << damageString << " mana due to your attack.";
 				message.type = MESSAGE_DAMAGE_DEALT;
 				message.text = ss.str();
 			} else if (tmpPlayer == targetPlayer) {
 				ss.str({});
-				ss << "You lose " << damageString << " mana";
+				ss << "You lose -" << damageString << " mana";
 				if (!attacker) {
 					ss << '.';
 				} else if (targetPlayer == attackerPlayer) {
